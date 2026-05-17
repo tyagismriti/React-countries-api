@@ -1,20 +1,33 @@
 import CountryCard from "./CountryCard"
 import { useEffect, useState } from "react"
 import CountriesListShimmer from "./CountriesListShimmer"
+import Error from "./Error"
 
 
 const CountriesList = ({query}) => {
-  const [CountriesData,setCountriesData]=useState([])
-useEffect(()=>{
-  fetch('https://restcountries.com/v3.1/all')
-    .then((res)=>res.json())
-     .then((data)=>{
-         setCountriesData(data)
-     })
-  },[])
+  const [CountriesData, setCountriesData] = useState([])
+  const [error, setError] = useState(false)
 
-  if(CountriesData.length===0){
-     return <CountriesListShimmer />
+  useEffect(() => {
+    fetch('https://restcountries.com/v3.1/all?fields=name,flags,population,capital,region')
+      .then((res) => {
+        if (!res.ok) throw new Error('API error')
+        return res.json()
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setCountriesData(data)
+        } else {
+          setError(true)
+        }
+      })
+      .catch(() => setError(true))
+  }, [])
+
+  if (error) return <Error />
+
+  if (CountriesData.length === 0) {
+    return <CountriesListShimmer />
   }
   return (
    <div className="countries-container">
